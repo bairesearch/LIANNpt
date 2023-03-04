@@ -28,20 +28,31 @@ else:
 
 useAlgorithmSMANN = True
 
-SMANNusePositiveWeights = True	#required for useAlgorithmSMANN
-if(SMANNusePositiveWeights):
-	SMANNusePositiveWeightsClampModel = False	#clamp entire model weights to be positive (rather than per layer)
-
-batchSize = 64	#2	#64
-numberOfLayers = 4
-hiddenLayerSize = 100	#5	#100
-
-printAccuracyRunningAverage = False
-
 stateTrainDataset = True
 stateTestDataset = True
 
-learningRate = 0.0001
+SMANNusePositiveWeights = True	#required for useAlgorithmSMANN
+if(SMANNusePositiveWeights):
+	SMANNusePositiveWeightsClampModel = True	#clamp entire model weights to be positive (rather than per layer); currently required
+
+debugSmallNetwork = False
+if(debugSmallNetwork):
+	batchSize = 2
+	numberOfLayers = 4
+	hiddenLayerSize = 5	
+	trainNumberOfEpochs = 1	#default: 10	#number of epochs to train
+else:
+	batchSize = 64
+	numberOfLayers = 4
+	hiddenLayerSize = 100
+	trainNumberOfEpochs = 10	#default: 10	#number of epochs to train
+
+printAccuracyRunningAverage = True
+if(printAccuracyRunningAverage):
+	runningAverageBatches = 10
+
+
+learningRate = 0.005	#0.0001
 
 useInbuiltCrossEntropyLossFunction = True
 useLinearSublayers = True	#use multiple independent sublayers per linear layer
@@ -50,7 +61,6 @@ if(useLinearSublayers):
 else:
 	linearSublayersNumber = 1
 	
-trainNumberOfEpochs = 1	#default: 10	#number of epochs to train
 
 relativeFolderLocations = False
 userName = 'user'	#default: user

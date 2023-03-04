@@ -22,6 +22,7 @@ import LIANNpt_SMANNmodel
 import LIANNpt_data
 
 def createModel(dataset):
+	#datasetSize = LIANNpt_data.getDatasetSize(dataset)
 	numberOfFeatures = LIANNpt_data.countNumberFeatures(dataset)
 	numberOfClasses = LIANNpt_data.countNumberClasses(dataset)
 	

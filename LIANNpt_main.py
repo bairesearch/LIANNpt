@@ -38,22 +38,27 @@ device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cp
 
 def main():
 	dataset = LIANNpt_data.loadDataset()
-	model = LIANNpt_SMANN.createModel(dataset['test'])
-	processDataset(True, dataset['train'], model)
-	processDataset(False, dataset['test'], model)
+	if(stateTrainDataset):
+		model = LIANNpt_SMANN.createModel(dataset['train'])	#dataset['test'] not possible as test does not contain all classes
+		processDataset(True, dataset['train'], model)
+	if(stateTestDataset):
+		model = loadModel()
+		processDataset(False, dataset['test'], model)
 
 def processDataset(trainOrTest, dataset, model):
 
-	loader = LIANNpt_data.createDataLoader(dataset)
 	if(trainOrTest):
 		optim = torch.optim.Adam(model.parameters(), lr=learningRate)
 		model.to(device)
 		model.train()
+		numberOfEpochs = trainNumberOfEpochs
 	else:
 		model.to(device)
 		model.eval()
+		numberOfEpochs = 1
 		
-	for epoch in range(trainNumberOfEpochs):
+	for epoch in range(numberOfEpochs):
+		loader = LIANNpt_data.createDataLoader(dataset)	#required to reset dataloader and still support tqdm modification
 		loop = tqdm(loader, leave=True)
 		
 		if(printAccuracyRunningAverage):
@@ -71,7 +76,6 @@ def processDataset(trainOrTest, dataset, model):
 			loop.set_description(f'Epoch {epoch}')
 			loop.set_postfix(batchIndex=batchIndex, loss=loss, accuracy=accuracy)
 
-		print("finished training model")
 		saveModel(model)
 					
 def trainBatch(batchIndex, batch, model, optim):
@@ -93,7 +97,7 @@ def trainBatch(batchIndex, batch, model, optim):
 			
 def testBatch(batchIndex, batch, model):
 
-	loss, accuracy = propagate(device, model, batch)
+	loss, accuracy = propagate(batchIndex, batch, model)
 
 	loss = loss.detach().cpu().numpy()
 	

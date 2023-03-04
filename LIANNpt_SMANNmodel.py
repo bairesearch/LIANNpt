@@ -73,15 +73,19 @@ class SMANNmodel(nn.Module):
 				
 	def forward(self, x, y):
 		for layerIndex in range(self.config.numberOfLayers):
-			#print("layerIndex = ", layerIndex)
+			if(debugSmallNetwork):
+				print("layerIndex = ", layerIndex)
+				print("x after linear = ", x)
 			x = self.executeLinearLayer(layerIndex, x, self.SMANNlayersDense[layerIndex])
 			if(layerIndex == self.config.numberOfLayers-1):
 				if(not useInbuiltCrossEntropyLossFunction):
 					x = torch.log(x)
 			else:
 				x = self.executeSoftmaxLayer(layerIndex, x, self.SMANNlayersSoftmax[layerIndex])
-		#print("x.shape = ", x.shape)
-		#print("y.shape = ", y.shape)
+			if(debugSmallNetwork):
+				print("x after softmax = ", x)
+		#print("x = ", x)
+		#print("y = ", y)
 		loss = self.lossFunction(x, y)
 		accuracy = self.accuracyFunction(x, y)
 		accuracy = accuracy.detach().cpu().numpy()
@@ -172,12 +176,9 @@ class LinearSegregated(nn.Module):
 		
 	def forward(self, x):
 		#x.shape = batch_size, number_sublayers, in_features
-		x = x.view(x.shape[0], x.shape[1]*x.shape[2])
-		x = torch.unsqueeze(x, -1)
+		x = x.view(x.shape[0], x.shape[1]*x.shape[2], 1)
 		x = self.segregatedLinear(x)
-		x = torch.squeeze(x, -1)
-		x = torch.split(x, x.shape[1]//self.number_sublayers, dim=1)
-		x = torch.stack(x, dim=1)
+		x = x.view(x.shape[0], self.number_sublayers, x.shape[1]//self.number_sublayers)
 		#x.shape = batch_size, number_sublayers, out_features
 		return x
 

@@ -37,6 +37,7 @@ def countNumberClasses(dataset):
 		#print("target = ", target)
 		if(target > numberOfClasses):
 			numberOfClasses = target
+	numberOfClasses = numberOfClasses+1
 	print("numberOfClasses = ", numberOfClasses)
 	return numberOfClasses
 
@@ -47,6 +48,7 @@ def countNumberFeatures(dataset):
 	
 def getDatasetSize(dataset):
 	datasetSize = dataset.num_rows
+	print("datasetSize = ", datasetSize)
 	return datasetSize
 	
 def createDataLoader(dataset):
