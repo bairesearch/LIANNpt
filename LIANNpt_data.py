@@ -23,9 +23,7 @@ from datasets import load_dataset
 from LIANNpt_globalDefs import *
 
 def loadDataset():
-	base_url = "https://huggingface.co/datasets/wwydmanski/blog-feedback/resolve/main/"	
-	dataset = load_dataset('csv', data_files={"train": base_url + "train.csv", "test": base_url + "test.csv"})
-	#print("dataset['train'] = ", dataset['train'])
+	dataset = load_dataset(datasetNameFull, data_files={"train":trainFileName, "test":testFileName})
 	return dataset
 
 def countNumberClasses(dataset):
@@ -33,7 +31,7 @@ def countNumberClasses(dataset):
 	numberOfClasses = 0
 	for i in range(datasetSize):
 		row = dataset[i]
-		target = int(row['target'])
+		target = int(row[classFieldName])
 		#print("target = ", target)
 		if(target > numberOfClasses):
 			numberOfClasses = target

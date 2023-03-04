@@ -31,9 +31,30 @@ useAlgorithmSMANN = True
 stateTrainDataset = True
 stateTestDataset = True
 
-SMANNusePositiveWeights = True	#required for useAlgorithmSMANN
-if(SMANNusePositiveWeights):
-	SMANNusePositiveWeightsClampModel = True	#clamp entire model weights to be positive (rather than per layer); currently required
+
+SMANNuseSoftmax = True	#required for useAlgorithmSMANN (disable for performance comparison with standard neural net/relu)
+if(SMANNuseSoftmax):
+	SMANNusePositiveWeights = True	#required
+	if(SMANNusePositiveWeights):
+		SMANNusePositiveWeightsClampModel = True	#clamp entire model weights to be positive (rather than per layer); currently required
+	useInbuiltCrossEntropyLossFunction = True	#optional
+else:
+	SMANNusePositiveWeights = False	#required
+	useInbuiltCrossEntropyLossFunction = True	#required
+	
+
+#datasetName = 'blog-feedback'
+datasetName = 'tabular-benchmark'
+if(datasetName == 'tabular-benchmark'):
+	datasetNameFull = 'inria-soda/tabular-benchmark'
+	classFieldName = 'class'
+	trainFileName = 'clf_cat/albert.csv'
+	testFileName = 'clf_cat/albert.csv'
+elif(datasetName == 'blog-feedback'):
+	datasetNameFull = 'wwydmanski/blog-feedback'
+	classFieldName = 'target'
+	trainFileName = 'train.csv'
+	testFileName = 'test.csv'
 
 debugSmallNetwork = False
 if(debugSmallNetwork):
@@ -52,9 +73,8 @@ if(printAccuracyRunningAverage):
 	runningAverageBatches = 10
 
 
-learningRate = 0.005	#0.0001
+learningRate = 0.005	#0.005	#0.0001
 
-useInbuiltCrossEntropyLossFunction = True
 useLinearSublayers = True	#use multiple independent sublayers per linear layer
 if(useLinearSublayers):
 	linearSublayersNumber = 10

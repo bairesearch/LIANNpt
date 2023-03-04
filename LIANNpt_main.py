@@ -86,8 +86,9 @@ def trainBatch(batchIndex, batch, model, optim):
 	loss.backward()
 	optim.step()
 	
-	if(SMANNusePositiveWeightsClampModel):
-		model.weightsSetPositiveModel()
+	if(SMANNusePositiveWeights):
+		if(SMANNusePositiveWeightsClampModel):
+			model.weightsSetPositiveModel()
 
 	if(batchIndex % modelSaveNumberOfBatches == 0):
 		saveModel(model)

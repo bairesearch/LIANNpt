@@ -73,10 +73,10 @@ class SMANNmodel(nn.Module):
 				
 	def forward(self, x, y):
 		for layerIndex in range(self.config.numberOfLayers):
+			x = self.executeLinearLayer(layerIndex, x, self.SMANNlayersDense[layerIndex])
 			if(debugSmallNetwork):
 				print("layerIndex = ", layerIndex)
 				print("x after linear = ", x)
-			x = self.executeLinearLayer(layerIndex, x, self.SMANNlayersDense[layerIndex])
 			if(layerIndex == self.config.numberOfLayers-1):
 				if(not useInbuiltCrossEntropyLossFunction):
 					x = torch.log(x)
@@ -115,10 +115,16 @@ class SMANNmodel(nn.Module):
 		return linear
 
 	def generateSoftmaxLayer(self, layerIndex, config):
-		if(self.getUseLinearSublayers(layerIndex)):
-			softmax = nn.Softmax(dim=1)
+		if(SMANNuseSoftmax):
+			if(self.getUseLinearSublayers(layerIndex)):
+				softmax = nn.Softmax(dim=1)
+			else:
+				softmax = nn.Softmax(dim=1)
 		else:
-			softmax = nn.Softmax(dim=1)
+			if(self.getUseLinearSublayers(layerIndex)):
+				softmax = nn.ReLU()
+			else:
+				softmax = nn.ReLU()		
 		return softmax
 
 	def executeLinearLayer(self, layerIndex, x, linear):
