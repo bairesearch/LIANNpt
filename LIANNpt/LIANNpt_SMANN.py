@@ -33,7 +33,9 @@ def createModel(dataset):
 		hiddenLayerSize = hiddenLayerSize,
 		inputLayerSize = numberOfFeatures,
 		outputLayerSize = numberOfClasses,
-		linearSublayersNumber = linearSublayersNumber
+		linearSublayersNumber = linearSublayersNumber,
+		numberOfFeatures = numberOfFeatures,
+		numberOfClasses = numberOfClasses
 	)
 	model = LIANNpt_SMANNmodel.SMANNmodel(config)
 	return model

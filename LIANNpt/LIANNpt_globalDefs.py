@@ -34,22 +34,24 @@ stateTestDataset = True
 
 SMANNuseSoftmax = True	#required for useAlgorithmSMANN (disable for performance comparison with standard neural net/relu)
 if(SMANNuseSoftmax):
-	SMANNusePositiveWeights = True	#required
-	if(SMANNusePositiveWeights):
-		SMANNusePositiveWeightsClampModel = True	#clamp entire model weights to be positive (rather than per layer); currently required
+	usePositiveWeights = True	#required
+	if(usePositiveWeights):
+		usePositiveWeightsClampModel = True	#clamp entire model weights to be positive (rather than per layer); currently required
 	useInbuiltCrossEntropyLossFunction = True	#optional
 else:
-	SMANNusePositiveWeights = False	#required
+	usePositiveWeights = False	#required
 	useInbuiltCrossEntropyLossFunction = True	#required
-	
 
-#datasetName = 'blog-feedback'
-datasetName = 'tabular-benchmark'
+datasetShuffle = False	#optional
+
+datasetName = 'blog-feedback'
+#datasetName = 'tabular-benchmark'
 if(datasetName == 'tabular-benchmark'):
 	datasetNameFull = 'inria-soda/tabular-benchmark'
 	classFieldName = 'class'
 	trainFileName = 'clf_cat/albert.csv'
 	testFileName = 'clf_cat/albert.csv'
+	datasetShuffle = False	#backprop does not optimise with shuffled dataset
 elif(datasetName == 'blog-feedback'):
 	datasetNameFull = 'wwydmanski/blog-feedback'
 	classFieldName = 'target'

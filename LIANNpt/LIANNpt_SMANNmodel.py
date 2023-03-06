@@ -22,46 +22,33 @@ from torch import nn
 from LIANNpt_globalDefs import *
 from torchmetrics.classification import Accuracy
 
-def createModel(dataset):
-	numberOfFeatures = countNumberFeatures(dataset)
-	numberOfClasses = countNumberClasses(dataset)
-	
-	print("creating new model")
-	config = LIANNpt_SMANNmodel.SMANNconfig(
-		batchSize=batchSize,
-		numberOfLayers=numberOfLayers,
-		hiddenLayerSize=hiddenLayerSize,
-		inputLayerSize = numberOfFeatures,
-		outputLayerSize = numberOfClasses,
-		linearSublayersNumber = linearSublayersNumber
-	)
-	model = SMANNmodel(config)
-	return model
-	
+
 class SMANNconfig():
-	def __init__(self, batchSize, numberOfLayers, hiddenLayerSize, inputLayerSize, outputLayerSize, linearSublayersNumber):
+	def __init__(self, batchSize, numberOfLayers, hiddenLayerSize, inputLayerSize, outputLayerSize, linearSublayersNumber, numberOfFeatures, numberOfClasses):
 		self.batchSize = batchSize
 		self.numberOfLayers = numberOfLayers
 		self.hiddenLayerSize = hiddenLayerSize
 		self.inputLayerSize = inputLayerSize
 		self.outputLayerSize = outputLayerSize
 		self.linearSublayersNumber = linearSublayersNumber
-
+		self.numberOfFeatures = numberOfFeatures
+		self.numberOfClasses = numberOfClasses
+		
 class SMANNmodel(nn.Module):
 	def __init__(self, config):
 		super().__init__()
 		self.config = config
 
-		SMANNlayersDenseList = []
-		SMANNlayersSoftmaxList = []
+		layersLinearList = []
+		layersActivationList = []
 		for layerIndex in range(config.numberOfLayers):
 			linear = self.generateLinearLayer(layerIndex, config)
-			SMANNlayersDenseList.append(linear)
+			layersLinearList.append(linear)
 		for layerIndex in range(config.numberOfLayers):
-			softmax = self.generateSoftmaxLayer(layerIndex, config)
-			SMANNlayersSoftmaxList.append(softmax)
-		self.SMANNlayersDense = nn.ModuleList(SMANNlayersDenseList)
-		self.SMANNlayersSoftmax = nn.ModuleList(SMANNlayersSoftmaxList)
+			activation = self.generateActivationLayer(layerIndex, config)
+			layersActivationList.append(activation)
+		self.layersLinear = nn.ModuleList(layersLinearList)
+		self.layersActivation = nn.ModuleList(layersActivationList)
 	
 		if(useInbuiltCrossEntropyLossFunction):
 			self.lossFunction = nn.CrossEntropyLoss()
@@ -73,17 +60,18 @@ class SMANNmodel(nn.Module):
 				
 	def forward(self, x, y):
 		for layerIndex in range(self.config.numberOfLayers):
-			x = self.executeLinearLayer(layerIndex, x, self.SMANNlayersDense[layerIndex])
+			x = self.executeLinearLayer(layerIndex, x, self.layersLinear[layerIndex])
 			if(debugSmallNetwork):
 				print("layerIndex = ", layerIndex)
 				print("x after linear = ", x)
 			if(layerIndex == self.config.numberOfLayers-1):
 				if(not useInbuiltCrossEntropyLossFunction):
+					x = self.executeActivationLayer(layerIndex, x, self.layersActivation[layerIndex])	#CHECKTHIS
 					x = torch.log(x)
 			else:
-				x = self.executeSoftmaxLayer(layerIndex, x, self.SMANNlayersSoftmax[layerIndex])
+				x = self.executeActivationLayer(layerIndex, x, self.layersActivation[layerIndex])
 			if(debugSmallNetwork):
-				print("x after softmax = ", x)
+				print("x after activation = ", x)
 		#print("x = ", x)
 		#print("y = ", y)
 		loss = self.lossFunction(x, y)
@@ -114,18 +102,18 @@ class SMANNmodel(nn.Module):
 
 		return linear
 
-	def generateSoftmaxLayer(self, layerIndex, config):
-		if(SMANNuseSoftmax):
+	def generateActivationLayer(self, layerIndex, config):
+		if(usePositiveWeights):
 			if(self.getUseLinearSublayers(layerIndex)):
-				softmax = nn.Softmax(dim=1)
+				activation = nn.Softmax(dim=1)
 			else:
-				softmax = nn.Softmax(dim=1)
+				activation = nn.Softmax(dim=1)
 		else:
 			if(self.getUseLinearSublayers(layerIndex)):
-				softmax = nn.ReLU()
+				activation = nn.ReLU()
 			else:
-				softmax = nn.ReLU()		
-		return softmax
+				activation = nn.ReLU()		
+		return activation
 
 	def executeLinearLayer(self, layerIndex, x, linear):
 		self.weightsSetPositiveLayer(layerIndex, linear)	#otherwise need to constrain backprop weight update function to never set weights below 0
@@ -137,7 +125,7 @@ class SMANNmodel(nn.Module):
 			x = linear(x)
 		return x
 
-	def executeSoftmaxLayer(self, layerIndex, x, softmax):
+	def executeActivationLayer(self, layerIndex, x, softmax):
 		if(self.getUseLinearSublayers(layerIndex)):
 			xSublayerList = []
 			for sublayerIndex in range(self.config.linearSublayersNumber):
@@ -157,8 +145,8 @@ class SMANNmodel(nn.Module):
 		return result
 
 	def weightsSetPositiveLayer(self, layerIndex, linear):
-		if(SMANNusePositiveWeights):
-			if(not SMANNusePositiveWeightsClampModel):
+		if(usePositiveWeights):
+			if(not usePositiveWeightsClampModel):
 				if(self.getUseLinearSublayers(layerIndex)):
 					weights = linear.segregatedLinear.weight #only positive weights allowed
 					weights = torch.abs(weights)
@@ -169,8 +157,8 @@ class SMANNmodel(nn.Module):
 					linear.weight = torch.nn.Parameter(weights)
 	
 	def weightsSetPositiveModel(self):
-		if(SMANNusePositiveWeights):
-			if(SMANNusePositiveWeightsClampModel):
+		if(usePositiveWeights):
+			if(usePositiveWeightsClampModel):
 				for p in self.parameters():
 					p.data.clamp_(0)
 			

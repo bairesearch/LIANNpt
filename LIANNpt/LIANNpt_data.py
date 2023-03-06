@@ -24,6 +24,13 @@ from LIANNpt_globalDefs import *
 
 def loadDataset():
 	dataset = load_dataset(datasetNameFull, data_files={"train":trainFileName, "test":testFileName})
+	if(datasetShuffle):
+		dataset = shuffleDataset(dataset)
+	return dataset
+
+def shuffleDataset(dataset):
+	datasetSize = getDatasetSize(dataset)
+	dataset = dataset.shuffle()
 	return dataset
 
 def countNumberClasses(dataset):

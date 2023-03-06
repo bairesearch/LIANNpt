@@ -29,7 +29,8 @@ from tqdm.auto import tqdm
 from torch import optim
 
 from LIANNpt_globalDefs import *
-import LIANNpt_SMANN
+if(useAlgorithmSMANN):
+	import LIANNpt_SMANN
 import LIANNpt_data
 
 #https://huggingface.co/docs/datasets/tabular_load
@@ -39,7 +40,8 @@ device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cp
 def main():
 	dataset = LIANNpt_data.loadDataset()
 	if(stateTrainDataset):
-		model = LIANNpt_SMANN.createModel(dataset['train'])	#dataset['test'] not possible as test does not contain all classes
+		if(useAlgorithmSMANN):
+			model = LIANNpt_SMANN.createModel(dataset['train'])	#dataset['test'] not possible as test does not contain all classes
 		processDataset(True, dataset['train'], model)
 	if(stateTestDataset):
 		model = loadModel()
@@ -58,6 +60,8 @@ def processDataset(trainOrTest, dataset, model):
 		numberOfEpochs = 1
 		
 	for epoch in range(numberOfEpochs):
+		if(datasetShuffle):
+			dataset = LIANNpt_data.shuffleDataset(dataset)
 		loader = LIANNpt_data.createDataLoader(dataset)	#required to reset dataloader and still support tqdm modification
 		loop = tqdm(loader, leave=True)
 		
@@ -81,13 +85,12 @@ def processDataset(trainOrTest, dataset, model):
 def trainBatch(batchIndex, batch, model, optim):
 
 	optim.zero_grad()
-
-	loss, accuracy = propagate(batchIndex, batch, model)
+	loss, accuracy = propagate(True, batchIndex, batch, model)
 	loss.backward()
 	optim.step()
 	
-	if(SMANNusePositiveWeights):
-		if(SMANNusePositiveWeightsClampModel):
+	if(usePositiveWeights):
+		if(usePositiveWeightsClampModel):
 			model.weightsSetPositiveModel()
 
 	if(batchIndex % modelSaveNumberOfBatches == 0):
@@ -98,7 +101,7 @@ def trainBatch(batchIndex, batch, model, optim):
 			
 def testBatch(batchIndex, batch, model):
 
-	loss, accuracy = propagate(batchIndex, batch, model)
+	loss, accuracy = propagate(False, batchIndex, batch, model)
 
 	loss = loss.detach().cpu().numpy()
 	
@@ -112,7 +115,7 @@ def loadModel():
 	model = torch.load(modelPathNameFull)
 	return model
 		
-def propagate(batchIndex, batch, model):
+def propagate(trainOrTest, batchIndex, batch, model):
 	(x, y) = batch
 	y = y.long()
 	x = x.to(device)
