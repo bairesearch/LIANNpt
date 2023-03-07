@@ -42,16 +42,16 @@ else:
 	usePositiveWeights = False	#required
 	useInbuiltCrossEntropyLossFunction = True	#required
 
-datasetShuffle = False	#optional
+datasetShuffle = True	#recommended
+datasetOrderByClass = False
 
-datasetName = 'blog-feedback'
 #datasetName = 'tabular-benchmark'
+datasetName = 'blog-feedback'
 if(datasetName == 'tabular-benchmark'):
 	datasetNameFull = 'inria-soda/tabular-benchmark'
 	classFieldName = 'class'
 	trainFileName = 'clf_cat/albert.csv'
 	testFileName = 'clf_cat/albert.csv'
-	datasetShuffle = False	#backprop does not optimise with shuffled dataset
 elif(datasetName == 'blog-feedback'):
 	datasetNameFull = 'wwydmanski/blog-feedback'
 	classFieldName = 'target'

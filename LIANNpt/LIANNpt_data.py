@@ -26,11 +26,17 @@ def loadDataset():
 	dataset = load_dataset(datasetNameFull, data_files={"train":trainFileName, "test":testFileName})
 	if(datasetShuffle):
 		dataset = shuffleDataset(dataset)
+	elif(datasetOrderByClass):
+		dataset = orderDatasetByClass(dataset)
 	return dataset
 
 def shuffleDataset(dataset):
 	datasetSize = getDatasetSize(dataset)
 	dataset = dataset.shuffle()
+	return dataset
+	
+def orderDatasetByClass(dataset):
+	dataset = dataset.sort(classFieldName)
 	return dataset
 
 def countNumberClasses(dataset):

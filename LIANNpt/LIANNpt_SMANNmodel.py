@@ -161,7 +161,7 @@ class SMANNmodel(nn.Module):
 			if(usePositiveWeightsClampModel):
 				for p in self.parameters():
 					p.data.clamp_(0)
-			
+
 class LinearSegregated(nn.Module):
 	def __init__(self, in_features, out_features, number_sublayers):
 		super().__init__()
