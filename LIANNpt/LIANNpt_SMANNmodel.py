@@ -24,7 +24,7 @@ from torchmetrics.classification import Accuracy
 
 
 class SMANNconfig():
-	def __init__(self, batchSize, numberOfLayers, hiddenLayerSize, inputLayerSize, outputLayerSize, linearSublayersNumber, numberOfFeatures, numberOfClasses):
+	def __init__(self, batchSize, numberOfLayers, hiddenLayerSize, inputLayerSize, outputLayerSize, linearSublayersNumber, numberOfFeatures, numberOfClasses, datasetSize, numberOfClassSamples):
 		self.batchSize = batchSize
 		self.numberOfLayers = numberOfLayers
 		self.hiddenLayerSize = hiddenLayerSize
@@ -33,6 +33,8 @@ class SMANNconfig():
 		self.linearSublayersNumber = linearSublayersNumber
 		self.numberOfFeatures = numberOfFeatures
 		self.numberOfClasses = numberOfClasses
+		self.datasetSize = datasetSize		
+		self.numberOfClassSamples = numberOfClassSamples
 		
 class SMANNmodel(nn.Module):
 	def __init__(self, config):

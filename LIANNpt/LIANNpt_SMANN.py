@@ -22,9 +22,9 @@ import LIANNpt_SMANNmodel
 import LIANNpt_data
 
 def createModel(dataset):
-	#datasetSize = LIANNpt_data.getDatasetSize(dataset)
+	datasetSize = LIANNpt_data.getDatasetSize(dataset, printSize=True)
 	numberOfFeatures = LIANNpt_data.countNumberFeatures(dataset)
-	numberOfClasses = LIANNpt_data.countNumberClasses(dataset)
+	numberOfClasses, numberOfClassSamples = LIANNpt_data.countNumberClasses(dataset)
 	
 	print("creating new model")
 	config = LIANNpt_SMANNmodel.SMANNconfig(
@@ -35,7 +35,9 @@ def createModel(dataset):
 		outputLayerSize = numberOfClasses,
 		linearSublayersNumber = linearSublayersNumber,
 		numberOfFeatures = numberOfFeatures,
-		numberOfClasses = numberOfClasses
+		numberOfClasses = numberOfClasses,
+		datasetSize = datasetSize,
+		numberOfClassSamples = numberOfClassSamples
 	)
 	model = LIANNpt_SMANNmodel.SMANNmodel(config)
 	return model
