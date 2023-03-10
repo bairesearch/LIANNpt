@@ -19,12 +19,12 @@ LIANNpt_SMANN softmax artificial neural network (SMANN) model
 
 from LIANNpt_globalDefs import *
 import LIANNpt_SMANNmodel
-import LIANNpt_data
+import ANNpt_data
 
 def createModel(dataset):
-	datasetSize = LIANNpt_data.getDatasetSize(dataset, printSize=True)
-	numberOfFeatures = LIANNpt_data.countNumberFeatures(dataset)
-	numberOfClasses, numberOfClassSamples = LIANNpt_data.countNumberClasses(dataset)
+	datasetSize = ANNpt_data.getDatasetSize(dataset, printSize=True)
+	numberOfFeatures = ANNpt_data.countNumberFeatures(dataset)
+	numberOfClasses, numberOfClassSamples = ANNpt_data.countNumberClasses(dataset)
 	
 	print("creating new model")
 	config = LIANNpt_SMANNmodel.SMANNconfig(

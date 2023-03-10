@@ -31,14 +31,16 @@ from torch import optim
 from LIANNpt_globalDefs import *
 if(useAlgorithmSMANN):
 	import LIANNpt_SMANN
-import LIANNpt_data
+if(usePositiveWeights):
+	import ANNpt_linearSublayers
+import ANNpt_data
 
 #https://huggingface.co/docs/datasets/tabular_load
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 def main():
-	dataset = LIANNpt_data.loadDataset()
+	dataset = ANNpt_data.loadDataset()
 	if(stateTrainDataset):
 		if(useAlgorithmSMANN):
 			model = LIANNpt_SMANN.createModel(dataset['train'])	#dataset['test'] not possible as test does not contain all classes
@@ -61,8 +63,8 @@ def processDataset(trainOrTest, dataset, model):
 		
 	for epoch in range(numberOfEpochs):
 		if(datasetShuffle):
-			dataset = LIANNpt_data.shuffleDataset(dataset)
-		loader = LIANNpt_data.createDataLoader(dataset)	#required to reset dataloader and still support tqdm modification
+			dataset = ANNpt_data.shuffleDataset(dataset)
+		loader = ANNpt_data.createDataLoader(dataset)	#required to reset dataloader and still support tqdm modification
 		loop = tqdm(loader, leave=True)
 		
 		if(printAccuracyRunningAverage):
@@ -91,7 +93,7 @@ def trainBatch(batchIndex, batch, model, optim):
 	
 	if(usePositiveWeights):
 		if(usePositiveWeightsClampModel):
-			model.weightsSetPositiveModel()
+			ANNpt_linearSublayers.weightsSetPositiveModel(model)
 
 	if(batchIndex % modelSaveNumberOfBatches == 0):
 		saveModel(model)
