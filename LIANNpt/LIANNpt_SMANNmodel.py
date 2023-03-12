@@ -19,7 +19,7 @@ LIANNpt softmax artificial neural network (SMANN) model
 
 import torch as pt
 from torch import nn
-from LIANNpt_globalDefs import *
+from ANNpt_globalDefs import *
 from torchmetrics.classification import Accuracy
 import ANNpt_linearSublayers
 
@@ -61,7 +61,7 @@ class SMANNmodel(nn.Module):
 		
 		ANNpt_linearSublayers.weightsSetPositiveModel(self)
 				
-	def forward(self, x, y):
+	def forward(self, trainOrTest, x, y, optim=None, l=None):
 		for layerIndex in range(self.config.numberOfLayers):
 			x = ANNpt_linearSublayers.executeLinearLayer(self, layerIndex, x, self.layersLinear[layerIndex])
 			if(debugSmallNetwork):

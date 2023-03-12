@@ -17,7 +17,7 @@ LIANNpt_SMANN softmax artificial neural network (SMANN) model
 
 """
 
-from LIANNpt_globalDefs import *
+from ANNpt_globalDefs import *
 import LIANNpt_SMANNmodel
 import ANNpt_data
 
