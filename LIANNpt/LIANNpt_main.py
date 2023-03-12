@@ -49,6 +49,13 @@ def main():
 		model = loadModel()
 		processDataset(False, dataset['test'], model)
 
+def createOptimizer():
+	if(optimiserAdam):
+		optim = torch.optim.Adam(model.parameters(), lr=learningRate)
+	else:
+		optim = torch.optim.SGD(model.parameters(), lr=learningRate)
+	return optim
+	
 def processDataset(trainOrTest, dataset, model):
 
 	if(trainOrTest):
