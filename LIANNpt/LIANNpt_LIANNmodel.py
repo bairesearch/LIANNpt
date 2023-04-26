@@ -1,4 +1,4 @@
-"""LIANNpt_SMANNmodel.py
+"""LIANNpt_LIANNmodel.py
 
 # Author:
 Richard Bruce Baxter - Copyright (c) 2023 Baxter AI (baxterai.com)
@@ -7,13 +7,13 @@ Richard Bruce Baxter - Copyright (c) 2023 Baxter AI (baxterai.com)
 MIT License
 
 # Installation:
-see LIANNpt_main.py
+see ANNpt_main.py
 
 # Usage:
-see LIANNpt_main.py
+see ANNpt_main.py
 
 # Description:
-LIANNpt softmax artificial neural network (SMANN) model
+LIANNpt local inhibitory artificial neural network model
 
 """
 
@@ -24,7 +24,7 @@ from torchmetrics.classification import Accuracy
 import ANNpt_linearSublayers
 
 
-class SMANNconfig():
+class LIANNconfig():
 	def __init__(self, batchSize, numberOfLayers, hiddenLayerSize, inputLayerSize, outputLayerSize, linearSublayersNumber, numberOfFeatures, numberOfClasses, datasetSize, numberOfClassSamples):
 		self.batchSize = batchSize
 		self.numberOfLayers = numberOfLayers
@@ -37,7 +37,7 @@ class SMANNconfig():
 		self.datasetSize = datasetSize		
 		self.numberOfClassSamples = numberOfClassSamples
 		
-class SMANNmodel(nn.Module):
+class LIANNmodel(nn.Module):
 	def __init__(self, config):
 		super().__init__()
 		self.config = config
@@ -63,6 +63,8 @@ class SMANNmodel(nn.Module):
 				
 	def forward(self, trainOrTest, x, y, optim=None, l=None):
 		for layerIndex in range(self.config.numberOfLayers):
+			if(trainLastLayerOnly):
+				x = x.detach()
 			x = ANNpt_linearSublayers.executeLinearLayer(self, layerIndex, x, self.layersLinear[layerIndex])
 			if(debugSmallNetwork):
 				print("layerIndex = ", layerIndex)

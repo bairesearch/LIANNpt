@@ -1,4 +1,4 @@
-"""LIANNpt_SMANN.py
+"""	.py
 
 # Author:
 Richard Bruce Baxter - Copyright (c) 2023 Baxter AI (baxterai.com)
@@ -7,18 +7,18 @@ Richard Bruce Baxter - Copyright (c) 2023 Baxter AI (baxterai.com)
 MIT License
 
 # Installation:
-see LIANNpt_main.py
+see ANNpt_main.py
 
 # Usage:
-see LIANNpt_main.py
+see ANNpt_main.py
 
 # Description:
-LIANNpt_SMANN softmax artificial neural network (SMANN) model
+LIANNpt_LIANN local inhibitory artificial neural network
 
 """
 
 from ANNpt_globalDefs import *
-import LIANNpt_SMANNmodel
+import LIANNpt_LIANNmodel
 import ANNpt_data
 
 def createModel(dataset):
@@ -27,7 +27,7 @@ def createModel(dataset):
 	numberOfClasses, numberOfClassSamples = ANNpt_data.countNumberClasses(dataset)
 	
 	print("creating new model")
-	config = LIANNpt_SMANNmodel.SMANNconfig(
+	config = LIANNpt_LIANNmodel.LIANNconfig(
 		batchSize = batchSize,
 		numberOfLayers = numberOfLayers,
 		hiddenLayerSize = hiddenLayerSize,
@@ -39,6 +39,6 @@ def createModel(dataset):
 		datasetSize = datasetSize,
 		numberOfClassSamples = numberOfClassSamples
 	)
-	model = LIANNpt_SMANNmodel.SMANNmodel(config)
+	model = LIANNpt_LIANNmodel.LIANNmodel(config)
 	return model
 	
