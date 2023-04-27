@@ -62,15 +62,18 @@ if(debugSmallNetwork):
 else:
 	batchSize = 64
 	numberOfLayers = 4
-	hiddenLayerSize = 100
+	hiddenLayerSize = 10
 	trainNumberOfEpochs = 10
 
+#initialise (dependent vars);
 inputLayerInList = True
 outputLayerInList = True
 useCNNlayers = False
 thresholdActivations = False
 debugPrintActivationOutput = False
 simulatedDendriticBranches = False
+SMANNuseSoftmax = False
+trainLastLayerOnly = False
 
 useTabularDataset = False
 useImageDataset = False
@@ -95,7 +98,7 @@ elif(useAlgorithmSANIOR):
 	
 import torch as pt
 
-useLovelyTensors = False
+useLovelyTensors = True
 if(useLovelyTensors):
 	import lovely_tensors as lt
 	lt.monkey_patch()

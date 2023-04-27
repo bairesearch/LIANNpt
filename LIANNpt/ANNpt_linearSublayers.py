@@ -96,6 +96,8 @@ def executeLinearLayer(self, layerIndex, x, linear, parallelStreams=False):
 		x = linear(x)
 		if(simulatedDendriticBranches):
 			x = performTopK(x)
+		if(normaliseActivationSparsity):
+			x = nn.functional.layer_norm(x, x.shape[1:])   #normalized_shape does not include batchSize
 	else:
 		if(parallelStreams):
 			x = pt.reshape(x, (x.shape[0], x.shape[1]*x.shape[2]))
@@ -105,11 +107,6 @@ def executeLinearLayer(self, layerIndex, x, linear, parallelStreams=False):
 
 def performTopK(x):
 	x = pt.max(x, dim=1, keepdim=False).values
-	if(normaliseActivationSparsity):
-		if(useCNNlayers):
-			x = nn.functional.layer_norm(x, [x.shape[1], x.shape[2], x.shape[3]])   #normalized_shape does not include batchSize
-		else:
-			x = nn.functional.layer_norm(x, [x.shape[1]])   #normalized_shape does not include batchSize
 	return x
 	
 def executeActivationLayer(self, layerIndex, x, activationFunction, parallelStreams=False, executeActivationFunctionOverFeatures=True):
