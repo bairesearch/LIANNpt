@@ -20,8 +20,18 @@ LIANNpt globalDefs
 debugUsePositiveWeightsVerify = False
 debugSmallNetwork = False
 
-SMANNuseSoftmax = True	#required for useAlgorithmLIANN (disable for performance comparison with standard neural net/relu)
-if(SMANNuseSoftmax):
+#debug only (emulate LUANNpt_LUANN codebase);
+useLUANNonly = False
+LIANNlocalLearning = False
+if(useLUANNonly):
+	activationFunctionType = "relu"
+	useLinearSublayers = True
+	linearSublayersNumber = 1000	#equivalent to numberOfIndependentDendriticBranches
+
+	trainLastLayerOnly = True	#optional	#LUANN
+else:
+	activationFunctionType = "softmax"	#required for useAlgorithmLIANN (disable for performance comparison with standard neural net/relu)
+	#activationFunctionType = "none"
 	usePositiveWeights = True	#required
 	if(usePositiveWeights):
 		usePositiveWeightsClampModel = True	#clamp entire model weights to be positive (rather than per layer); currently required
@@ -31,22 +41,20 @@ if(SMANNuseSoftmax):
 	if(simulatedDendriticBranches):
 		useLinearSublayers = True
 		linearSublayersNumber = 1000	#equivalent to numberOfIndependentDendriticBranches
-		if(SMANNuseSoftmax):
+		if(activationFunctionType=="softmax"):
 			normaliseActivationSparsity = True	#increases performance
 		else:
 			normaliseActivationSparsity = True	#required
 			
-		trainLastLayerOnly = False	#optional	#LUANN
-		
-	useLUANNonly = False
-else:
-	#debug only (emulate LUANNpt_LUANN codebase);
-	useLUANNonly = True
-	if(useLUANNonly):
-		useLinearSublayers = True
-		linearSublayersNumber = 1000	#equivalent to numberOfIndependentDendriticBranches
-
 		trainLastLayerOnly = True	#optional	#LUANN
+		if(trainLastLayerOnly):
+			LIANNlocalLearning = True
+			#normaliseActivationSparsity = False
+			if(LIANNlocalLearning):
+				LIANNlocalLearningNeuronActiveThreshold = 0.1	#minimum activation level for neuron to be considered active (required for usePositiveWeights net)	#CHECKTHIS
+				LIANNlocalLearningRate = 0.001	#0.01	#default: 0.001	#CHECKTHIS
+				LIANNlocalLearningBias = False	#bias learning towards most signficant weights
+		
 
 if(trainLastLayerOnly):
 	batchSize = 64

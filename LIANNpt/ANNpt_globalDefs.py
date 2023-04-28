@@ -72,7 +72,7 @@ useCNNlayers = False
 thresholdActivations = False
 debugPrintActivationOutput = False
 simulatedDendriticBranches = False
-SMANNuseSoftmax = False
+activationFunctionType = "relu"
 trainLastLayerOnly = False
 
 useTabularDataset = False
@@ -98,7 +98,7 @@ elif(useAlgorithmSANIOR):
 	
 import torch as pt
 
-useLovelyTensors = True
+useLovelyTensors = False
 if(useLovelyTensors):
 	import lovely_tensors as lt
 	lt.monkey_patch()
@@ -180,7 +180,6 @@ if(useTabularDataset):
 		datasetNormalise = True
 		datasetNormaliseClassValues = True
 		trainNumberOfEpochs = 100
-		batchSize = 100	#emulate VICRegANNtf
 		numberOfLayers = 4
 		hiddenLayerSize = 15	#5
 		datasetRepeat = True	#enable better sampling by dataloader with high batchSize (required if batchSize ~= datasetSize)

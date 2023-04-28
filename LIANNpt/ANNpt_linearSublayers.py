@@ -72,16 +72,18 @@ def generateLinearLayer2(self, layerIndex, in_features, out_features, linearSubl
 	return linear
 
 def generateActivationFunction():
-	if(SMANNuseSoftmax):
+	if(activationFunctionType=="softmax"):
 		if(thresholdActivations):
 			activation = OffsetSoftmax(thresholdActivationsMin)
 		else:
 			activation = nn.Softmax(dim=1)
-	else:
+	elif(activationFunctionType=="relu"):
 		if(thresholdActivations):
 			activation = OffsetReLU(thresholdActivationsMin)
 		else:
 			activation = nn.ReLU()
+	elif(activationFunctionType=="none"):
+		activation = None
 	return activation
 
 def generateActivationLayer(self, layerIndex, config):
@@ -94,10 +96,6 @@ def executeLinearLayer(self, layerIndex, x, linear, parallelStreams=False):
 		if(not parallelStreams):
 			x = x.unsqueeze(dim=1).repeat(1, self.config.linearSublayersNumber, 1)
 		x = linear(x)
-		if(simulatedDendriticBranches):
-			x = performTopK(x)
-		if(normaliseActivationSparsity):
-			x = nn.functional.layer_norm(x, x.shape[1:])   #normalized_shape does not include batchSize
 	else:
 		if(parallelStreams):
 			x = pt.reshape(x, (x.shape[0], x.shape[1]*x.shape[2]))
@@ -105,13 +103,9 @@ def executeLinearLayer(self, layerIndex, x, linear, parallelStreams=False):
 		x = linear(x)
 	return x
 
-def performTopK(x):
-	x = pt.max(x, dim=1, keepdim=False).values
-	return x
-	
 def executeActivationLayer(self, layerIndex, x, activationFunction, parallelStreams=False, executeActivationFunctionOverFeatures=True):
 	if(getUseLinearSublayers(self, layerIndex) and not simulatedDendriticBranches):
-		if(SMANNuseSoftmax):
+		if(activationFunctionType=="softmax"):
 			if(executeActivationFunctionOverFeatures):
 				numberOfSamples = x.shape[0]
 				numberOfSublayers = x.shape[1]
@@ -125,15 +119,18 @@ def executeActivationLayer(self, layerIndex, x, activationFunction, parallelStre
 					x = pt.reshape(x, (numberOfSamples, numberOfSublayers, x.shape[1], x.shape[2], x.shape[3]))
 				else:
 					x = pt.reshape(x, (numberOfSamples, numberOfSublayers, x.shape[1]))
-		else:
+		elif(activationFunctionType=="relu"):
 			x = activationFunction(x)
+		elif(activationFunctionType=="none"):
+			pass
 		if(not parallelStreams):
 			if(useCNNlayers):
 				x = pt.reshape(x, (x.shape[0], x.shape[1]*x.shape[2], x.shape[3], x.shape[4]))
 			else:
 				x = pt.reshape(x, (x.shape[0], x.shape[1]*x.shape[2]))
 	else:
-		x = activationFunction(x)
+		if(activationFunctionType!="none"):
+			x = activationFunction(x)
 	return x
 
 def getUseLinearSublayers(self, layerIndex):

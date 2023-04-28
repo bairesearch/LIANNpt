@@ -65,6 +65,7 @@ class LIANNmodel(nn.Module):
 		if(useLUANNonly):
 			x = x.unsqueeze(dim=1).repeat(1, self.config.linearSublayersNumber, 1)
 		for layerIndex in range(self.config.numberOfLayers):
+			xPrev = x
 			if(trainLastLayerOnly):
 				x = x.detach()
 			x = ANNpt_linearSublayers.executeLinearLayer(self, layerIndex, x, self.layersLinear[layerIndex], parallelStreams=useLUANNonly)
@@ -76,9 +77,16 @@ class LIANNmodel(nn.Module):
 					x = ANNpt_linearSublayers.executeActivationLayer(self, layerIndex, x, self.layersActivation[layerIndex], parallelStreams=useLUANNonly)	#CHECKTHIS
 					x = torch.log(x)
 			else:
+				if(simulatedDendriticBranches):
+					x, xIndex = self.performTopK(x)
+				if(trainOrTest and LIANNlocalLearning):
+					self.trainWeightsLayer(layerIndex, x, xIndex, xPrev)
+				if(normaliseActivationSparsity):
+					x = nn.functional.layer_norm(x, x.shape[1:])   #normalized_shape does not include batchSize
 				x = ANNpt_linearSublayers.executeActivationLayer(self, layerIndex, x, self.layersActivation[layerIndex], parallelStreams=useLUANNonly)
 			if(debugSmallNetwork):
 				print("x after activation = ", x)
+				 
 		#print("x = ", x)
 		#print("y = ", y)
 		loss = self.lossFunction(x, y)
@@ -87,4 +95,41 @@ class LIANNmodel(nn.Module):
 		
 		return loss, accuracy
 
+	def performTopK(self, x):
+		xMax = pt.max(x, dim=1, keepdim=False)
+		x = xMax.values
+		xIndex = xMax.indices
+		return x, xIndex
+	
+	def trainWeightsLayer(self, layerIndex, x, xIndex, xPrev):
+		#print("xPrev = ", xPrev)
+		xPrevActive = pt.greater(xPrev, LIANNlocalLearningNeuronActiveThreshold).float()
+		xPrevInactive = pt.less(xPrev, LIANNlocalLearningNeuronActiveThreshold).float()
+		xPrevInactiveBase = xPrevInactive
+		if(LIANNlocalLearningBias):
+			xPrevActive = pt.multiply(xPrev, xPrevActive)	#higher the activation, the more weight should be increased
+			xPrevInactive = pt.multiply(xPrev, xPrevInactive)
+			xPrevInactive = 1 - xPrevInactive	#lower the activation, the more weight should be decreased
+		xPrevInactive = 0 - xPrevInactive
+		xPrevInactive = pt.multiply(xPrevInactive, xPrevInactiveBase)	#ensure all active cells are set to zero
+		#print("xPrevActive = ", xPrevActive)
+		#print("xPrevInactive = ", xPrevInactive)
+		xPrevWeightUpdate = pt.add(xPrevActive, xPrevInactive)
+		xPrevWeightUpdate = xPrevWeightUpdate*LIANNlocalLearningRate
+		xPrevWeightUpdate = xPrevWeightUpdate.unsqueeze(1)
+		xPrevWeightUpdate = xPrevWeightUpdate.unsqueeze(-1)
+		xPrevWeightUpdate = xPrevWeightUpdate.repeat(1, hiddenLayerSize, 1, 1)
+		#print("xPrevWeightUpdate = ", xPrevWeightUpdate)
+		layerWeights = self.layersLinear[layerIndex].segregatedLinear.weight
+		layerWeights = pt.reshape(layerWeights, (linearSublayersNumber, hiddenLayerSize, layerWeights.shape[1], layerWeights.shape[2]))
+		topKweightsList = []
+		#TODO: require method to perform simultaneous indexing over hiddenLayerSize dimension;
+		for i in range(hiddenLayerSize):
+			topKweightsI = layerWeights[xIndex[:, i], i]
+			topKweightsList.append(topKweightsI)
+		topKweights = pt.stack(topKweightsList, dim=1)
+		topKweights = pt.add(topKweights, xPrevWeightUpdate)
+		topKweights = pt.mean(topKweights, dim=0)	#take mean weight adjustment over batch
+		layerWeights = pt.reshape(layerWeights, (linearSublayersNumber*hiddenLayerSize, layerWeights.shape[2], layerWeights.shape[3]))
+		self.layersLinear[layerIndex].segregatedLinear.weight = pt.nn.Parameter(layerWeights)
 
