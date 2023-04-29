@@ -104,6 +104,8 @@ def executeLinearLayer(self, layerIndex, x, linear, parallelStreams=False):
 	return x
 
 def executeActivationLayer(self, layerIndex, x, activationFunction, parallelStreams=False, executeActivationFunctionOverFeatures=True):
+	if(normaliseActivationSparsity):
+		x = nn.functional.layer_norm(x, x.shape[1:])   #normalized_shape does not include batchSize
 	if(getUseLinearSublayers(self, layerIndex) and not simulatedDendriticBranches):
 		if(activationFunctionType=="softmax"):
 			if(executeActivationFunctionOverFeatures):
@@ -157,20 +159,27 @@ def weightsSetLayer(self, layerIndex, linear):
 			nn.init.constant_(linear.bias, 0)
 
 def weightsFixLayer(self, layerIndex, linear):
-	if(not trainLastLayerOnly):
+	#if(not trainLastLayerOnly):
+	if(not usePositiveWeightsClampModel):
 		weightsSetPositiveLayer(self, layerIndex, linear)
 			
 def weightsSetPositiveLayer(self, layerIndex, linear):
 	if(usePositiveWeights):
-		if(not usePositiveWeightsClampModel):
+		if(getUseLinearSublayers(self, layerIndex)):
+			weights = linear.segregatedLinear.weight #only positive weights allowed
+			weights = pt.abs(weights)
+			linear.segregatedLinear.weight = pt.nn.Parameter(weights)
+		else:
+			weights = linear.weight #only positive weights allowed
+			weights = pt.abs(weights)
+			linear.weight = pt.nn.Parameter(weights)
+		if(debugUsePositiveWeightsVerify):
 			if(getUseLinearSublayers(self, layerIndex)):
-				weights = linear.segregatedLinear.weight #only positive weights allowed
-				weights = pt.abs(weights)
-				linear.segregatedLinear.weight = pt.nn.Parameter(weights)
+				weights = linear.segregatedLinear.weight
+				print("weights = ", weights)
 			else:
-				weights = linear.weight #only positive weights allowed
-				weights = pt.abs(weights)
-				linear.weight = pt.nn.Parameter(weights)
+				weights = linear.weight
+				print("weights = ", weights)		
 		
 def weightsSetPositiveModel(self):
 	if(usePositiveWeights):

@@ -74,6 +74,8 @@ debugPrintActivationOutput = False
 simulatedDendriticBranches = False
 activationFunctionType = "relu"
 trainLastLayerOnly = False
+normaliseActivationSparsity = False
+debugUsePositiveWeightsVerify = False
 
 useTabularDataset = False
 useImageDataset = False
@@ -98,7 +100,7 @@ elif(useAlgorithmSANIOR):
 	
 import torch as pt
 
-useLovelyTensors = False
+useLovelyTensors = True
 if(useLovelyTensors):
 	import lovely_tensors as lt
 	lt.monkey_patch()

@@ -81,8 +81,6 @@ class LIANNmodel(nn.Module):
 					x, xIndex = self.performTopK(x)
 				if(trainOrTest and LIANNlocalLearning):
 					self.trainWeightsLayer(layerIndex, x, xIndex, xPrev)
-				if(normaliseActivationSparsity):
-					x = nn.functional.layer_norm(x, x.shape[1:])   #normalized_shape does not include batchSize
 				x = ANNpt_linearSublayers.executeActivationLayer(self, layerIndex, x, self.layersActivation[layerIndex], parallelStreams=useLUANNonly)
 			if(debugSmallNetwork):
 				print("x after activation = ", x)
